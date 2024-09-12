@@ -18,6 +18,12 @@
         onCustomWidgetResize (width, height){
             this.render()
         }
+
+        onCustomWidgetAfterUpdate (changedProps){
+        }
+
+        onCustomWidthDestroy () {
+        }
     
         render () {
             this._root.textContent = `Hello Custom Widget clientWidth: ${this.clientWidth}, clientHeight: ${this.clientHeight}`
