@@ -46,6 +46,9 @@ var parseMetadata = metadata => {
         }   
 
         onCustomWidthDestroy () {
+            this.seriesType = seriesType
+            this.dispatchEvent(new CustomEvent('propertiesChanged', { detail: { properties: { seriesType } } }))
+            this.render()
         }
     
         async render () {
@@ -55,21 +58,23 @@ var parseMetadata = metadata => {
             }
 
             await getScriptPromisfy('https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js')
-            this._root.textContent = JSON.stringify(dataBinding)
+            // this._root.textContent = JSON.stringify(dataBinding)
             // this._root.textContent = `Hello Custom Widget clientWidth: ${this.clientWidth}, clientHeight: ${this.clientHeight}`
         
             const { data, metadata } = dataBinding
             const { dimensions, measures } = parseMetadata(metadata)
 
+            //dimension
             const categoryData = []
 
+            //measures
             const series = measures.map(measure => {
                 return {
                     id: measure.id,
                     name: measure.label,
                     data: [],
                     key: measure.key,
-                    type: 'line',
+                    type: this.seriesType || 'line',
                     smooth: true
                 }
             })
