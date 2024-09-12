@@ -13,6 +13,7 @@
             this._shadowRoot = this.attachShadow({ mode: 'open' })
             this._shadowRoot.appendChild(template.content.cloneNode(true))
             this._root = this._shadowRoot.getElementById('root')
+            this._eChart = null
         }
 
         onCustomWidgetResize (width, height){
@@ -31,8 +32,44 @@
             if(!dataBinding || dataBinding.state !== 'success') {
                 return
             }
+
+            await getScriptPromisfy('https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js')
             this._root.textContent = JSON.stringify(dataBinding)
-            //this._root.textContent = `Hello Custom Widget clientWidth: ${this.clientWidth}, clientHeight: ${this.clientHeight}`
+            // this._root.textContent = `Hello Custom Widget clientWidth: ${this.clientWidth}, clientHeight: ${this.clientHeight}`
+        
+            const { data, metadata } = dataBinding
+            const { dimensions, measures } = parseMetadata(metadata)
+
+            const categoryData = []
+
+            const series = measures.map(measure => {
+                return {
+                    id: measure.id,
+                    name: measure.label,
+                    data: [],
+                    key: measure.key,
+                    type: 'line',
+                    smooth: true
+                }
+            })
+            data.forEach(row => {
+                categoryData.push(dimensions.map(dimension => {
+                  return row[dimension.key].label
+                }).join('/')) // dimension
+                series.forEach(series => {
+                  series.data.push(row[series.key].raw)
+                }) // measures
+              })
+        
+              if (this._eChart) { echarts.dispose(this._eChart) }
+              const eChart = this._eChart = echarts.init(this._root, 'main')
+              const option = {
+                xAxis: { type: 'category', data: categoryData },
+                yAxis: { type: 'value' },
+                tooltip: { trigger: 'axis' },
+                series
+              }
+            eChart.setOption(option)
         }
     }
 
